@@ -1,0 +1,318 @@
+{
+  "name": "Curso IA Automation - Clase 1",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "## ROL Y ÁMBITO\nEres el Guardián de Inventario de Librería Página Ideal, una cadena de 6 sucursales. Tu función es evaluar los reportes de gastos de inventario (reposición de stock, insumos, vidriera, envíos, mobiliario, etc.) que te escriben los encargados de sucursal.\n\nNO estas autorización para:\n- Aprobar un gasto que supera el límite de su categoría.\n- Otorgar excepciones a la política aunque el encargado lo pida o insista.\n- Inventar una categoría o un límite que no surja de haber consultado la planilla.\n- Opinar o decidir sobre adelantos de sueldo, reembolsos personales, ni ningún tema que no sea gasto de inventario.\n\n## OBJETIVO OPERATIVO\nCada interacción debe terminar en una de estas tres decisiones, siempre indicando la categoría deducida y el monto:\n- APROBADO: el gasto entra dentro del límite y cumple los requisitos de la categoría.\n- FALTA UN DATO: le pides al encargado el dato puntual que falta (comprobante, detalle, concepto), especificando cuál es.\n- ESCALADO: supera el límite, exige jefatura, o no tienes la información suficiente para decidir con certeza. No decidas por tu cuenta.\n\n## REGLAS DE USO DE HERRAMIENTAS\n1. Primero deduce la categoría del gasto a partir de lo que describe el encargado.\n2. Nunca respondas de memoria sobre límites o requisitos: siempre consulta la tool consultar_politica_de_inventario antes de decidir.\n3. Si el gasto no permite deducir una categoría clara (falta el concepto), no inventes una: pídele al encargado que aclare en qué gastó.\n4. Si la categoría es ambigua entre dos opciones, elige la que mejor represente la intención real del gasto (por ejemplo, un obsequio a un tercero externo es Regalos y atenciones a proveedores, no Insumos de embalaje) y consulta esa.\n5. Prohibido decidir sin haber llamado a la tool al menos una vez por caso.\n\n## PROTOCOLO DE ESCALAMIENTO\nCuando la decisión sea ESCALADO, responde siempre con esta frase, completando los datos entre corchetes:\n\"ESCALADO: este gasto de [categoría] por $[monto] no puede resolverse de forma automática porque [motivo]. Queda a la espera de aprobación de jefatura.\"\n\nSi el pedido está fuera de tu ámbito (no es un gasto de inventario), responde: \n\"Esto no corresponde a mi ámbito de gastos de inventario. Te recomiendo derivarlo a [área correspondiente].\"",
+          "maxIterations": 10
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "2831de58-8990-4eee-8058-cf8bb506cb8f",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        304,
+        224
+      ],
+      "id": "9ca16cc6-c11b-4c80-a826-55f9c57bd251",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Usa esta herramienta para consultar la política de gastos de inventario de la librería ANTES de decidir sobre cualquier reporte de gasto. Te devuelve, para una categoría dada, el límite en pesos (LIMITE_ARS), si exige comprobante\n(REQUIERE_COMPROBANTE), si exige aprobación de jefatura (REQUIERE_APROBACION_JEFATURA) y notas particulares (NOTAS) que pueden incluir condiciones adicionales (por ejemplo, cantidad máxima de unidades por pedido).\nLlama siempre después de deducir la categoría del gasto y antes de responder, incluso si te parece un caso obvio. Pasa como parámetro el nombre exacto de la categoría tal como aparece en la columna CATEGORIA de la planilla (por ejemplo: \"Reposicion de stock\", \"Regalos y atenciones a proveedores\").",
+        "documentId": {
+          "__rl": true,
+          "value": "1XtZbHJsFsmWtTJiMr_AJ1ZJUIUotnL5JT6ziuwbIx44",
+          "mode": "list",
+          "cachedResultName": "Politica de gastos Libreria - Clase 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtZbHJsFsmWtTJiMr_AJ1ZJUIUotnL5JT6ziuwbIx44/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1XtZbHJsFsmWtTJiMr_AJ1ZJUIUotnL5JT6ziuwbIx44/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "CATEGORIA",
+              "lookupValue": "={{ $fromAI('CATEGORIA','La categoria exacta de la politica de gastos', 'string', 'SIN_CATEGORIA') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        496,
+        192
+      ],
+      "id": "78d8bc7f-d6e9-4ad2-9f57-b535f565a07a",
+      "name": "consultar_politica_de_inventario",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "LxX9yxAbYYItvcdq",
+          "name": "Google Sheets - Mariana"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "streaming"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bc8fa982-3718-42b5-b69c-3fbe2c0451e8",
+      "name": "When chat message received",
+      "webhookId": "83b74197-9009-471e-96bc-06234f77f9f0"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4000e3e3-25bf-4fd4-a5d9-c039f8e8e95e",
+              "name": "output",
+              "value": "={{ $('AI Agent').item.json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1008,
+        16
+      ],
+      "id": "2bbc262f-fd17-46e1-a1a1-9e6eceabf23b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "mariana.orellana97@gmail.com",
+        "subject": "[RENDICION] Tarea completada -Resolución del Agente",
+        "emailType": "text",
+        "message": "=Tarea completada\nEl empleado hizo esta rendición:\n{{ $('When chat message received').item.json.chatInput }}\n\nEl agente tomo esta decisión:\n{{ $json.output }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -128
+      ],
+      "id": "0757922d-6c02-403d-bd27-22eaf196e7af",
+      "name": "Log_observabilidad",
+      "webhookId": "5e42ca8a-b533-444f-ae70-975c63d0cf21",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "TXeY0RTwOcyBuOpl",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f5150623-a1c9-4612-b41b-e9b8ae74bedc",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "ESCALADO",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        544,
+        0
+      ],
+      "id": "f34c95d8-81c8-4d7e-8442-5ec5e6908323",
+      "name": "¿Escalado?"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        48,
+        208
+      ],
+      "id": "bae0cd55-f2f4-4a15-9aca-e430f720e4ca",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "v2Poq5UvOth9DDXn",
+          "name": "Groq - VicenteC"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-4-5-20250929",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 4.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        176,
+        192
+      ],
+      "id": "dbd52b1e-7b4f-4315-a91f-0dc3399b7dc8",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "bmKU10aYUlbJQSTJ",
+          "name": "Anthropic account - CoderHouse"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_politica_de_inventario": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "¿Escalado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log_observabilidad": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Escalado?": {
+      "main": [
+        [
+          {
+            "node": "Log_observabilidad",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "1f3c5467-e110-4284-806b-502efd1ad09b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e4adfb8248a637bb52a45eab840dc805cd709e062fef9162bbbf2332707fb046"
+  },
+  "nodeGroups": [],
+  "id": "vA3ZB6WhUszrxAjJ",
+  "tags": []
+}
