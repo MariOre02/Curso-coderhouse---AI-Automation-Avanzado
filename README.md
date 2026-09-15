@@ -12,7 +12,7 @@ Gmail Trigger (casilla de soporte)
 ① IF - Es auto-reply?  ──Sí──▶ Stop (corta el bucle infinito)
         │ No
         ▼
-④ Set - Limpieza de payload  (extrae email_remitente, asunto, cuerpo; evita el Error 400)
+④ Set - Limpieza de payload  (extrae email_remitente, asunto, cuerpo)
         │
         ▼
 IF - Payload válido? (email presente)  ──No──▶ Descartado
@@ -27,7 +27,7 @@ IF - Existe registro previo?  →  Preparar contexto / Cliente nuevo
 AI Agent (clasifica intención/urgencia + redacta borrador, con el resumen de memoria inyectado en el prompt)
         │
         ▼
-② HubSpot - Buscar contacto (Look up)  →  IF existe  →  Update / Create   (evita el Error 409)
+② HubSpot - Buscar contacto (Look up)  →  IF existe  →  Update / Create
         │
         ▼
 ③ Gmail - Create Draft (HITL)   ← nunca envía, solo deja el borrador listo para aprobación humana
